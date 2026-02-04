@@ -33,6 +33,7 @@
     color: rgba(255, 255, 255, 0.1);
     z-index: 1;
     animation: pulse 3s infinite;
+    pointer-events: none;
   }
 
   @keyframes pulse {
@@ -49,10 +50,16 @@
     backdrop-filter: blur(20px);
     border-radius: 40px;
     border: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 20px rgba(255, 77, 109, 0.2);
     max-width: 450px;
     width: 90%;
     transition: all 0.5s ease;
+    animation: floatCard 4s ease-in-out infinite;
+  }
+
+  @keyframes floatCard {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
 
   h1 { font-family: 'Dancing Script', cursive; font-size: 3rem; margin-bottom: 5px; text-shadow: 2px 2px 10px rgba(0,0,0,0.1); }
@@ -66,7 +73,7 @@
     overflow: hidden;
     display: none; 
     animation: zoomIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3);
   }
   .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -86,7 +93,7 @@
   }
 
   #yes { background: white; color: var(--primary-pink); }
-  #yes:hover { transform: scale(1.1); background: #fff1f3; }
+  #yes:hover { transform: scale(1.1); box-shadow: 0 0 20px white; }
   
   #no { background: rgba(255, 255, 255, 0.4); color: white; position: absolute; left: 50%; }
 
@@ -98,7 +105,19 @@
     animation: fadeIn 1.5s;
   }
 
-  /* Emotional Letter Modal */
+  /* Floral Decoration at Bottom */
+  .garden {
+    position: fixed;
+    bottom: -50px;
+    width: 100%;
+    height: 150px;
+    display: flex;
+    justify-content: space-around;
+    pointer-events: none;
+    z-index: 5;
+    transition: bottom 1s ease;
+  }
+
   .letter-modal {
     display: none;
     position: fixed;
@@ -130,30 +149,49 @@
     z-index: 99;
   }
 
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: sparkleAnim 1s linear forwards;
+  }
 
-  .floating { position: absolute; pointer-events: none; z-index: 1; animation: floatUp 6s linear forwards; }
-  @keyframes floatUp { 0% { opacity: 0; transform: translateY(0); } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; } }
+  @keyframes sparkleAnim {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0) translateY(20px); opacity: 0; }
+  }
+
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  .floating {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+    animation: floatUp 6s linear forwards;
+  }
 </style>
 </head>
 <body>
 
 <div class="bg-heart">❤️</div>
+<div class="garden" id="garden"></div>
 
 <div class="overlay" id="overlay" onclick="closeLetter()"></div>
 
 <div class="letter-modal" id="letterModal">
   <div id="letterContent">
     <p>My Dearest Radha Agarwal,</p>
-    
     <p>It’s funny how a single swipe on Hinge could lead to the most precious chapters of my life. From a digital greeting to a soul connection, you became my home faster than I ever thought possible.</p>
-    
     <p>Our trip to <strong>Ujjain</strong> stays etched in my heart as the perfect beginning. Among the bells, the prayers, and the sacred air, I found a different kind of peace—I found it in your laughter. We went as two people and came back as one heart. </p>
-    
     <p>The way we came so close in such a short time feels like destiny. Being with you is a constant reminder that the best things in life aren't planned; they are simply felt. You are my affirmation, my joy, and my greatest adventure.</p>
-    
     <p>Every moment since has only made me certain: I don't just want you for a season, I want you for a lifetime.</p>
-    
     <p>Yours, <br>Harshil Leuva</p>
   </div>
   <center>
@@ -168,12 +206,12 @@
 
   <div id="content">
     <h1 id="title">Hey Radha 💕</h1>
-    <p id="message">I was just thinking about our Ujjain trip and how fast I fell for you...</p>
+    <p id="message">You are the feeling of Sunday morning sun on a cold day. Not just a person, but a whole atmosphere of warmth where I finally feel I can let my guard down</p>
     <h2 id="question">Will you be my Valentine? 💖</h2>
     
-    <div class="btn-group" id="btnGroup">
+    <div class="btn-group">
       <button id="yes" onclick="celebrate()">Yes, Forever 💘</button>
-      <button id="no" onmouseover="moveNo()">No 🙈</button>
+      <button id="no" onmouseover="moveNo()" id="noBtn">No 🙈</button>
     </div>
   </div>
 
@@ -181,10 +219,20 @@
 </div>
 
 <audio id="bgMusic" loop>
-  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mp3">
+  <source src="music.mp3" type="audio/mp3">
 </audio>
 
 <script>
+  // Mouse Sparkle Graphic
+  document.addEventListener('mousemove', (e) => {
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.left = e.pageX + 'px';
+    sparkle.style.top = e.pageY + 'px';
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 1000);
+  });
+
   function moveNo() {
     const btn = document.getElementById("no");
     const x = Math.random() * (window.innerWidth - 150);
@@ -196,6 +244,17 @@
 
   function celebrate() {
     document.getElementById("bgMusic").play();
+    document.getElementById("garden").style.bottom = "0px";
+
+    // Build the garden
+    const garden = document.getElementById("garden");
+    const flowers = ["🌸", "🌷", "🌹", "🌺", "🌻"];
+    for(let i=0; i<15; i++) {
+        const flower = document.createElement("div");
+        flower.style.fontSize = "40px";
+        flower.innerHTML = flowers[Math.floor(Math.random()*flowers.length)];
+        garden.appendChild(flower);
+    }
 
     // Advanced Flower & Heart Burst
     const duration = 10 * 1000;
@@ -216,10 +275,26 @@
     // UI Updates
     document.getElementById("title").innerHTML = "Happy Valentine's, Radha! 🌹";
     document.getElementById("message").innerHTML = "You are the best thing that ever happened to me.";
-    document.getElementById("question").style.display = "none";
-    document.getElementById("btnGroup").style.display = "none";
+    document.querySelector("h2").style.display = "none";
+    document.querySelector(".btn-group").style.display = "none";
     document.getElementById("photoFrame").style.display = "block";
     document.getElementById("letterBtn").style.display = "inline-block";
+    
+    // Heart Rain
+    setInterval(() => {
+        createFloatingElement("❤️");
+    }, 300);
+  }
+
+  function createFloatingElement(emoji) {
+    const el = document.createElement("div");
+    el.className = "floating";
+    el.innerHTML = emoji || ["🌸","❤️","✨","🌷","💍"][Math.floor(Math.random()*5)];
+    el.style.left = Math.random() * 100 + "vw";
+    el.style.top = "105vh";
+    el.style.fontSize = (Math.random() * 25 + 15) + "px";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 6000);
   }
 
   function openLetter() {
@@ -232,17 +307,8 @@
     document.getElementById("overlay").style.display = "none";
   }
 
-  // Floating background petals
-  setInterval(() => {
-    const el = document.createElement("div");
-    el.className = "floating";
-    el.innerHTML = ["🌸","❤️","✨","🌷","💍"][Math.floor(Math.random()*5)];
-    el.style.left = Math.random() * 100 + "vw";
-    el.style.top = "105vh";
-    el.style.fontSize = (Math.random() * 25 + 15) + "px";
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 6000);
-  }, 350);
+  // Regular background floating elements
+  setInterval(() => createFloatingElement(), 400);
 </script>
 
 </body>
